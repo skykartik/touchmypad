@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>touch-my-pad – turn your touchpad into a touchscreen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8ecf3;--glass:#f7f9fd;--line:#c9d2e2;--ink:#0d1a2e;--mute:#53617a;--acc:#2a3bff;--accink:#fff;--shadow:0 30px 60px -30px rgba(20,40,110,.35);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#080d1a;--glass:#111a30;--line:#25324f;--ink:#e8edf8;--mute:#8d9bb8;--acc:#7f8dff;--accink:#080d1a;--shadow:0 30px 60px -30px #000}}
+:root[data-theme="dark"]{--bg:#080d1a;--glass:#111a30;--line:#25324f;--ink:#e8edf8;--mute:#8d9bb8;--acc:#7f8dff;--accink:#080d1a;--shadow:0 30px 60px -30px #000}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.55 "Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.logo{font:800 20px "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em;display:flex;gap:10px;align-items:center}
+.logo i{width:26px;height:20px;border:2px solid var(--ink);border-radius:6px;position:relative;display:block}
+.logo i:after{content:"";position:absolute;right:3px;bottom:3px;width:7px;height:7px;border-radius:50%;background:var(--acc)}
+button,.btn{font:600 15px "Hanken Grotesk",system-ui,sans-serif;cursor:pointer;border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:9px 18px;transition:background .15s,color .15s}
+button:hover{background:var(--ink);color:var(--bg)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+button.on{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+h1{font:800 clamp(46px,9.2vw,124px)/.92 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.045em;margin:34px 0 22px;max-width:11ch}
+h2{font:800 clamp(30px,4.6vw,56px)/1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.035em;margin:0 0 18px}
+.lede{font-size:clamp(18px,2vw,22px);color:var(--mute);max-width:46ch;margin:0 0 28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--acc);border-color:var(--acc);color:var(--accink);text-decoration:none;padding:13px 26px;font-size:16px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.cmd{border:1.5px solid var(--line);background:var(--glass);border-radius:999px;padding:11px 20px;font-size:14px}
+
+/* the demo */
+.stage{margin:56px 0 0;display:grid;grid-template-columns:minmax(0,5fr) 56px minmax(0,6fr);align-items:center;gap:0}
+.hint{font-size:14px;color:var(--mute);margin:10px 4px 0}
+.pad{position:relative;aspect-ratio:16/10;background:var(--glass);border:1.5px solid var(--line);border-radius:26px;box-shadow:var(--shadow);touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none;overflow:hidden}
+.pad:before{content:"";position:absolute;inset:4%;border:1.5px dashed var(--line);border-radius:18px;pointer-events:none}
+.pad .c{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--acc);opacity:.9;pointer-events:none;box-shadow:0 0 0 8px color-mix(in srgb,var(--acc) 22%,transparent)}
+.flow{height:2px;background:repeating-linear-gradient(90deg,var(--acc) 0 8px,transparent 8px 16px);margin:0 6px}
+.scrwrap{display:flex;justify-content:center;align-items:center;min-height:300px}
+.scr{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:var(--ink);border-radius:14px;padding:10px;box-shadow:var(--shadow);transition:aspect-ratio .4s,width .4s}
+.scr.p{width:46%;aspect-ratio:9/16}
+.glass{position:relative;width:100%;height:100%;border-radius:6px;overflow:hidden;background:var(--bg);display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:6px;padding:8px}
+.scr.p .glass{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(5,1fr)}
+.tile{border-radius:8px;background:var(--glass);border:1px solid var(--line);transition:background .12s,transform .12s}
+.tile.hit{background:var(--acc);transform:scale(.94)}
+.sd{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2.5px solid var(--acc);background:color-mix(in srgb,var(--acc) 30%,transparent);pointer-events:none;transition:left .06s linear,top .06s linear}
+.ctl{display:flex;gap:28px 40px;flex-wrap:wrap;align-items:center;margin-top:30px;padding:18px 22px;border:1.5px solid var(--line);border-radius:20px;background:var(--glass)}
+.ctl b{font-weight:600}
+.ctl label{display:flex;gap:12px;align-items:center;font-size:15px}
+input[type=range]{accent-color:var(--acc);width:170px}
+.rot{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rot button{padding:6px 12px;font-size:14px}
+.read{margin-left:auto;font:500 14px ui-monospace,Menlo,Consolas,monospace;color:var(--mute);min-width:200px}
+
+section{padding:110px 0 0}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1.5px solid var(--ink)}
+.how div{padding:26px 28px 8px 0}
+.how div+div{padding-left:28px;border-left:1.5px solid var(--line)}
+.how h3{font:600 22px "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em;margin:0 0 8px}
+.how p{margin:0;color:var(--mute)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.facts dl{margin:0}
+.facts dt{font:600 20px "Bricolage Grotesque",system-ui,sans-serif;margin-top:22px}
+.facts dt:first-child{margin-top:0}
+.facts dd{margin:4px 0 0;color:var(--mute)}
+.term{background:var(--ink);color:var(--bg);border-radius:20px;padding:26px;font-size:14px;line-height:1.8;overflow-x:auto;box-shadow:var(--shadow)}
+.term span{opacity:.55}
+details{border-top:1.5px solid var(--line);padding:18px 0}
+details:last-of-type{border-bottom:1.5px solid var(--line)}
+summary{cursor:pointer;font:600 20px "Bricolage Grotesque",system-ui,sans-serif;list-style:none;display:flex;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"+";color:var(--acc);font-size:26px;line-height:1}
+details[open] summary:after{content:"–"}
+details p{color:var(--mute);margin:10px 0 0;max-width:62ch}
+footer{padding:110px 0 50px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:var(--mute);font-size:14px}
+@media (max-width:820px){
+.stage{grid-template-columns:1fr;gap:18px}.flow{width:2px;height:40px;margin:0 auto;background:repeating-linear-gradient(180deg,var(--acc) 0 8px,transparent 8px 16px)}
+.how,.facts{grid-template-columns:1fr;gap:28px}.how div+div{padding-left:0;border-left:0;border-top:1.5px solid var(--line)}.read{margin-left:0}}
+#prog{position:fixed;top:0;left:0;right:0;height:3px;background:var(--acc);transform-origin:0 50%;transform:scaleX(0);z-index:50}
+.nr{display:flex;gap:10px;align-items:center}
+a.gh{font:600 15px "Hanken Grotesk",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1.5px solid var(--ink);border-radius:999px;padding:9px 18px}
+a.gh:hover{background:var(--ink);color:var(--bg)}
+a:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.btn.alt{background:transparent;color:var(--ink);border-color:var(--ink)}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.08em}
+.w>span{display:inline-block;animation:up 1s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d)}
+@keyframes up{from{transform:translateY(105%)}}
+.js .rv{opacity:0;transform:translateY(36px);filter:blur(10px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1),filter .9s;transition-delay:var(--d,0s)}
+.js .rv.in{opacity:1;transform:none;filter:none}
+.big{display:grid;grid-template-columns:repeat(3,1fr);border-top:1.5px solid var(--ink)}
+.big div{padding:28px 0 0}
+.big strong{display:block;font:800 clamp(64px,14vw,180px)/.9 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.05em;color:var(--acc)}
+.big span{color:var(--mute);font-size:18px}
+.steps{list-style:none;margin:36px 0 0;padding:0;border-top:1.5px solid var(--ink);counter-reset:s}
+.steps li{display:grid;grid-template-columns:96px 1fr;gap:10px 24px;padding:30px 0;border-bottom:1.5px solid var(--line);counter-increment:s}
+.steps li:before{content:counter(s);font:800 68px/.9 "Bricolage Grotesque",system-ui,sans-serif;color:var(--acc)}
+.steps h3{font:600 26px "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em;margin:0 0 6px}
+.steps p{margin:0;color:var(--mute);max-width:60ch}
+.cb{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--ink);color:var(--bg);border-radius:14px;padding:9px 9px 9px 18px;margin:12px 0 0;max-width:640px;font-size:14px}
+.cb code{overflow-x:auto;white-space:nowrap}
+.cb button{border-color:var(--bg);color:var(--bg);padding:5px 14px;font-size:13px;flex:none}
+.cb button:hover{background:var(--bg);color:var(--ink)}
+.s2{margin-top:90px}
+.fine{font-size:14px;color:var(--mute)}
+.cta .fine{margin:0}
+a.lnk{color:var(--acc);font-weight:600}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;max-width:780px}
+.opt{border:1.5px solid var(--line);background:var(--glass);border-radius:16px;padding:16px 18px}
+.opt b{display:block;margin-bottom:4px}
+.opt p,.steps p.note{font-size:15px}
+.steps p.note{margin-top:14px}
+.uses{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:36px}
+.use{border:1.5px solid var(--line);background:var(--glass);border-radius:26px;padding:24px;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.use h3{font:800 34px/1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.03em;margin:0 0 8px}
+.use p{margin:0 0 18px;color:var(--mute)}
+.toy{position:relative;flex:1;min-height:230px;border-radius:16px;background:var(--bg);border:1.5px solid var(--line);overflow:hidden}
+.tap .g{position:absolute;inset:14px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:8px}
+.tap .g i{border-radius:10px;background:var(--glass);border:1px solid var(--line);transition:background .15s,transform .15s}
+.tap .g i.hit{background:var(--acc);transform:scale(.93)}
+.tap .f{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid var(--acc);background:color-mix(in srgb,var(--acc) 30%,transparent);transition:left .5s cubic-bezier(.3,.8,.3,1),top .5s cubic-bezier(.3,.8,.3,1)}
+#score{position:absolute;left:14px;top:12px;font-weight:600}
+.tg,.tg:hover{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:0;padding:0;background:var(--acc);box-shadow:0 0 0 10px color-mix(in srgb,var(--acc) 25%,transparent);touch-action:manipulation}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.mini{position:absolute;right:10px;top:10px;padding:4px 12px;font-size:13px}
+@media (max-width:820px){.uses,.opts{grid-template-columns:1fr}}
+.close{padding-top:140px}
+.close h2{font-size:clamp(38px,7.4vw,98px);line-height:.95;max-width:15ch}
+@media (max-width:820px){.steps li{grid-template-columns:52px 1fr}.steps li:before{font-size:42px}.big span{font-size:15px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.w>span{animation:none}.js .rv{opacity:1;transform:none;filter:none}}
+</style>
+<script>document.documentElement.className='js'</script>
+</head>
+<body>
+<div id="prog"></div>
+<div class="wrap">
+<nav>
+ <div class="logo"><i></i>touch-my-pad</div>
+ <div class="nr"><a class="gh" href="https://github.com/skykartik/touch-my-pad" target="_blank" rel="noopener">GitHub</a><button id="theme" aria-label="Switch light or dark theme">Theme</button></div>
+</nav>
+
+<header>
+ <h1>Your touchpad is a touchscreen.</h1>
+ <p class="lede">Use your laptop’s touchpad like a phone screen. Tap, swipe and draw right where your finger lands. Nothing to buy.</p>
+ <div class="cta">
+  <a class="btn" href="https://github.com/skykartik/touch-my-pad" target="_blank" rel="noopener">Get it free</a>
+  <a class="btn alt" href="#start">How to set it up</a>
+  <span class="fine">For Windows 10 and 11 laptops</span>
+ </div>
+</header>
+
+<div class="stage" aria-label="Interactive demo">
+ <div>
+  <div class="pad" id="pad" role="application" aria-label="Demo touchpad. Press and drag, or use several fingers."></div>
+  <p class="hint">Try it: press and drag on the pad, then watch the screen. On a phone, use several fingers.</p>
+ </div>
+ <div class="flow" aria-hidden="true"></div>
+ <div class="scrwrap"><div class="scr" id="scr"><div class="glass" id="glass"></div></div></div>
+</div>
+
+<div class="ctl">
+ <label for="m"><b>Corner reach</b><input id="m" type="range" min="0" max="12" value="3"><span id="mv">3%</span></label>
+ <div class="rot"><b>Screen rotation</b>
+  <button data-r="0" class="on">0°</button><button data-r="1">90°</button><button data-r="2">180°</button><button data-r="3">270°</button>
+ </div>
+ <div class="read" id="read" aria-live="off">pad – · screen –</div>
+</div>
+
+<section>
+ <h2>Made for how you actually use your laptop.</h2>
+ <p class="lede">Try each one right here, with your mouse or your fingers.</p>
+ <div class="uses">
+  <div class="use"><h3>Everyday</h3><p>Tap, scroll and swipe like on a phone. No more hunting for the cursor.</p><div class="toy tap" id="tap" aria-hidden="true"></div></div>
+  <div class="use"><h3>Games</h3><p>Play games that support touch. Warm up by hitting the target.</p><div class="toy" id="game"><span id="score">Score 0</span><button class="tg" id="tg" aria-label="Target"></button></div></div>
+  <div class="use"><h3>Drawing</h3><p>Sketch, doodle and sign things with a finger. It can’t tell how hard you press.</p><div class="toy"><canvas id="cv" aria-label="Drawing pad"></canvas><button id="clr" class="mini">Clear</button></div></div>
+ </div>
+</section>
+
+<section>
+ <div class="big">
+  <div><strong data-n="10">10</strong><span>fingers at once</span></div>
+  <div><strong>0</strong><span>extra packages to install</span></div>
+  <div><strong data-n="1">1</strong><span>file to run</span></div>
+ </div>
+</section>
+
+<section>
+ <h2>How it works, in plain English.</h2>
+ <div class="how">
+  <div><h3>Read the pad</h3><p>It watches exactly where each finger sits on your touchpad.</p></div>
+  <div><h3>Map to the screen</h3><p>Each position becomes a point on your display, rotated to match your screen’s orientation.</p></div>
+  <div><h3>Inject real touch</h3><p>Windows receives genuine touch input, so swipes, pinches and taps work in apps that expect a touchscreen.</p></div>
+ </div>
+</section>
+
+<section>
+ <div class="facts">
+  <dl>
+   <dt>Up to 10 fingers</dt><dd>Every contact on the pad becomes its own touch point on the screen.</dd>
+   <dt>Ctrl + ` toggles it</dt><dd>While it’s on, the normal cursor is blocked so it doesn’t fight your touches. Turn it off and your cursor returns.</dd>
+   <dt>Rotation-aware</dt><dd>Rotate your screen while it runs and the mapping follows. If portrait feels mirrored, flip one setting.</dd>
+   <dt>Reaches the corners</dt><dd>Touchpads ignore a thin strip at the edge. The corner reach slider above shows how the script makes up for it. In the script it’s called EDGE_MARGIN.</dd>
+  </dl>
+  <div class="term" aria-label="Terminal output"><span>C:\&gt;</span> python touchmypad.py<br>[+] Touchpad found: 5 contact slots<br>[*] Screen 1920x1080, rotation code 0<br>Running. Touch the touchpad.<br>Ctrl+` = on/off. Close this window to quit.<br><span>Sample output. Your numbers will differ.</span></div>
+ </div>
+</section>
+
+<section id="start">
+ <h2>From zero to touch in four steps.</h2>
+ <p class="lede">You need a Windows 10 or 11 laptop. Most modern ones work, and the questions below show how to check yours. You don’t have to type a single command.</p>
+ <ol class="steps">
+  <li><div><h3>Install Python</h3><p>Python is the free program that runs touch-my-pad. Pick whichever way feels easier.</p><div class="opts"><div class="opt"><b>From the website</b><p>Go to <a class="lnk" href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a> and click the big yellow Download button. Open the file. On the first screen, tick “Add python.exe to PATH”, then click Install Now. Choose 64-bit if it asks.</p></div><div class="opt"><b>From the Microsoft Store</b><p>Open the Microsoft Store from your Start menu, search for “Python”, and click Get on the newest Python 3 made by the Python Software Foundation.</p></div></div><p class="note">Finished? Open the Start menu and type “Python”. If you see it, you’re set.</p></div></li>
+  <li><div><h3>Download touch-my-pad</h3><p>Open <a class="lnk" href="https://github.com/skykartik/touch-my-pad" target="_blank" rel="noopener">the GitHub page</a>, click the green Code button, then Download ZIP. Right-click the ZIP file and choose Extract All.</p><p class="note">Use Git? Run this instead:</p><div class="cb"><code>git clone https://github.com/skykartik/touch-my-pad.git</code><button data-c="git clone https://github.com/skykartik/touch-my-pad.git">Copy</button></div></div></li>
+  <li><div><h3>Start it</h3><p>Open the extracted folder and double-click <b>touchmypad.py</b>. A black window opens. That means it’s running, so keep it open. Then touch your touchpad once so it can find it.</p><p class="note">If the window flashes shut, open a terminal in that folder and run:</p><div class="cb"><code>python touchmypad.py</code><button data-c="python touchmypad.py">Copy</button></div></div></li>
+  <li><div><h3>Use it</h3><p>Touch the pad to tap the matching spot on the screen. Press Ctrl + ` (the key above Tab on most keyboards) to turn it off and on. Close the black window to quit.</p></div></li>
+ </ol>
+ <h2 class="s2">Questions people ask</h2>
+ <div class="facts">
+  <p class="lede">If something misbehaves, it’s almost always one of these settings in the script.</p>
+  <div>
+   <details><summary>Will my touchpad work?</summary><p>You need a Precision Touchpad, which most modern laptops have. To check, open Windows Settings, search for “Touchpad”, and look for the line “Your PC has a precision touchpad”.</p></details>
+   <details><summary>Does it work in every game?</summary><p>Only in games and apps that accept touch. Games that only understand a mouse will ignore it.</p></details>
+   <details><summary>My corners are hard to reach</summary><p>Raise EDGE_MARGIN in the script, for example to 0.12. Lower it if the edges feel too twitchy.</p></details>
+   <details><summary>Touches are mirrored in portrait</summary><p>Set FLIP_ROTATION to False to swap the two portrait directions.</p></details>
+   <details><summary>Something isn’t working</summary><p>Set DEBUG to True, run it again, and read what it prints.</p></details>
+   <details><summary>Does it work on Mac or Linux?</summary><p>No. It uses Windows touch injection, so it only runs on Windows.</p></details>
+  </div>
+ </div>
+</section>
+
+<section class="close">
+ <h2>Your laptop already has a touchscreen. It’s just in the wrong place.</h2>
+ <p class="lede">Free to read, run and change. Grab the script and try it.</p>
+ <div class="cta"><a class="btn" href="https://github.com/skykartik/touch-my-pad" target="_blank" rel="noopener">Get touch-my-pad</a></div>
+</section>
+<footer><span>touch-my-pad · made with Python and ctypes</span><span><a href="https://github.com/skykartik/touch-my-pad" target="_blank" rel="noopener" style="color:inherit">github.com/skykartik/touch-my-pad</a> · Windows 10/11 only</span></footer>
+</div>
+
+<script>
+(function(){
+var root=document.documentElement,tb=document.getElementById('theme');
+tb.onclick=function(){var d=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;root.dataset.theme=d?'light':'dark'};
+
+var pad=document.getElementById('pad'),scr=document.getElementById('scr'),glass=document.getElementById('glass'),read=document.getElementById('read');
+var margin=.03,rot=0,DEAD=.04,touches={},mk=function(n){var f='';for(var i=0;i<n;i++)f+='<div class="tile"></div>';return f};
+function build(){glass.innerHTML=mk(rot%2?15:12)}build();
+
+// same maths as map_to_screen() in the script (FLIP_ROTATION = True)
+function mapRot(u,v){var o=rot;if(o===1||o===3)o=4-o;
+ if(o===1)return[v,1-u];if(o===2)return[1-u,1-v];if(o===3)return[1-v,u];return[u,v]}
+function clamp(x){return Math.min(1,Math.max(0,x))}
+function toScreen(nx,ny){
+ var rx=Math.min(1-DEAD,Math.max(DEAD,nx)),ry=Math.min(1-DEAD,Math.max(DEAD,ny)); // raw range never reaches the edge
+ var u=clamp((rx-margin)/(1-2*margin)),v=clamp((ry-margin)/(1-2*margin));
+ var p=mapRot(u,v);return{u:u,v:v,x:p[0],y:p[1]}}
+
+function place(id,e){
+ var r=pad.getBoundingClientRect(),nx=(e.clientX-r.left)/r.width,ny=(e.clientY-r.top)/r.height;
+ var t=touches[id];if(!t)return;
+ t.c.style.left=clamp(nx)*100+'%';t.c.style.top=clamp(ny)*100+'%';
+ var s=toScreen(nx,ny);t.d.style.left=s.x*100+'%';t.d.style.top=s.y*100+'%';
+ var g=glass.getBoundingClientRect(),el=document.elementFromPoint(g.left+s.x*(g.width-1),g.top+s.y*(g.height-1));
+ glass.querySelectorAll('.tile.hit').forEach(function(n){if(n!==el)n.classList.remove('hit')});
+ if(el&&el.classList.contains('tile'))el.classList.add('hit');
+ read.textContent='pad '+Math.round(clamp(nx)*100)+','+Math.round(clamp(ny)*100)+' · screen '+Math.round(s.x*100)+','+Math.round(s.y*100)}
+
+pad.addEventListener('pointerdown',function(e){
+ if(Object.keys(touches).length>=10)return;
+ pad.setPointerCapture(e.pointerId);
+ var c=document.createElement('div');c.className='c';pad.appendChild(c);
+ var d=document.createElement('div');d.className='sd';glass.appendChild(d);
+ touches[e.pointerId]={c:c,d:d};place(e.pointerId,e)});
+pad.addEventListener('pointermove',function(e){if(touches[e.pointerId])place(e.pointerId,e)});
+function up(e){var t=touches[e.pointerId];if(!t)return;t.c.remove();t.d.remove();delete touches[e.pointerId];
+ if(!Object.keys(touches).length)glass.querySelectorAll('.tile.hit').forEach(function(n){n.classList.remove('hit')})}
+pad.addEventListener('pointerup',up);pad.addEventListener('pointercancel',up);
+
+document.getElementById('m').oninput=function(){margin=this.value/100;document.getElementById('mv').textContent=this.value+'%'};
+document.querySelectorAll('.rot button').forEach(function(b){b.onclick=function(){
+ document.querySelectorAll('.rot button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');
+ rot=+b.dataset.r;scr.classList.toggle('p',rot%2===1);build()}});
+})();
+</script>
+<script>
+(function(){
+var R=document.documentElement,rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+var h=document.querySelector('h1'),txt=h.textContent;h.setAttribute('aria-label',txt);
+h.innerHTML=txt.split(' ').map(function(w,i){return '<span class="w" aria-hidden="true"><span style="--d:'+(i*.09)+'s">'+w+'</span></span>'}).join(' ');
+var els=document.querySelectorAll('header p,.cta,.stage>div,.ctl,section>h2,section>.lede,.uses>*,.big>div,.how>div,.facts>*,.steps li,details,footer');
+els.forEach(function(e){e.classList.add('rv');var i=Array.prototype.indexOf.call(e.parentNode.children,e);e.style.setProperty('--d',Math.min(i,5)*.08+'s')});
+function count(e){var n=+e.dataset.n,s=performance.now();(function f(t){var p=Math.min(1,(t-s)/1300);e.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(s)}
+if(rm||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')})}
+else{
+ var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+ els.forEach(function(e){io.observe(e)});
+ var io2=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){count(x.target);io2.unobserve(x.target)}})},{threshold:.6});
+ document.querySelectorAll('[data-n]').forEach(function(e){io2.observe(e)});
+}
+var tp=document.getElementById('tap');tp.innerHTML='<div class="g">'+'<i></i>'.repeat(6)+'</div><b class="f"></b>';
+var ts=tp.querySelectorAll('i'),fg=tp.querySelector('.f'),k=0;
+if(!rm)setInterval(function(){var t=ts[k],r=t.getBoundingClientRect(),p=tp.getBoundingClientRect();fg.style.left=(r.left-p.left+r.width/2)+'px';fg.style.top=(r.top-p.top+r.height/2)+'px';ts.forEach(function(x){x.classList.remove('hit')});setTimeout(function(){t.classList.add('hit')},380);k=Math.floor(Math.random()*6)},1200);
+var tg=document.getElementById('tg'),sc=document.getElementById('score'),pts=0;
+function mv(){tg.style.left=(10+Math.random()*80)+'%';tg.style.top=(28+Math.random()*60)+'%'}
+tg.addEventListener('pointerdown',function(e){e.preventDefault();pts++;sc.textContent='Score '+pts;mv()});mv();
+var cv=document.getElementById('cv'),cx=cv.getContext('2d'),dr={};
+function fit(){var r=cv.getBoundingClientRect();cv.width=r.width;cv.height=r.height}fit();addEventListener('resize',fit);
+cv.addEventListener('pointerdown',function(e){cv.setPointerCapture(e.pointerId);dr[e.pointerId]=[e.offsetX,e.offsetY]});
+cv.addEventListener('pointermove',function(e){var p=dr[e.pointerId];if(!p)return;cx.strokeStyle=getComputedStyle(R).getPropertyValue('--acc').trim()||'#2a3bff';cx.lineWidth=4;cx.lineCap='round';cx.beginPath();cx.moveTo(p[0],p[1]);cx.lineTo(e.offsetX,e.offsetY);cx.stroke();dr[e.pointerId]=[e.offsetX,e.offsetY]});
+function en(e){delete dr[e.pointerId]}cv.addEventListener('pointerup',en);cv.addEventListener('pointercancel',en);
+document.getElementById('clr').onclick=function(){cx.clearRect(0,0,cv.width,cv.height)};
+var pb=document.getElementById('prog');
+function sp(){var d=R.scrollHeight-innerHeight;pb.style.transform='scaleX('+(d>0?Math.min(1,scrollY/d):0)+')'}
+addEventListener('scroll',sp,{passive:true});sp();
+document.querySelectorAll('[data-c]').forEach(function(b){b.onclick=function(){
+ var ok=function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1400)};
+ try{navigator.clipboard.writeText(b.dataset.c).then(ok,function(){b.textContent='Select + copy'})}catch(e){b.textContent='Select + copy'}}});
+})();
+</script>
+</body>
+</html>
