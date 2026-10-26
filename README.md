@@ -1,4 +1,4 @@
-# touch-my-pad
+# touchmypad
 
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-2a3bff)
 ![Python](https://img.shields.io/badge/python-3%20(64--bit)-2a3bff)
@@ -40,8 +40,8 @@ Touch the top-left of your touchpad and the top-left of your screen gets tapped.
 With Git:
 
 ```
-git clone https://github.com/skykartik/touch-your-pad.git
-cd touch-my-pad
+git clone https://github.com/skykartik/touchmypad.git
+cd touchmypad
 ```
 
 Without Git: open the repo on GitHub, click **Code**, then **Download ZIP**, and unzip it.
