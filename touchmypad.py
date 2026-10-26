@@ -1,17 +1,4 @@
-"""
-touchpad_touch.py  -  Use your laptop touchpad as a touchscreen (absolute mapping).
 
-Touch the top-left of the touchpad  -> taps the top-left of the screen.
-Touch the middle                    -> taps the middle. Multi-finger works (up to 10).
-
-Requirements: Windows 10/11, Python 3 (64-bit), a Precision Touchpad. No pip installs.
-Run:          python touchpad_touch.py
-
-Hotkey:       Ctrl+`  = turn ON / OFF   (close this window to quit)
-While ON, normal mouse/touchpad cursor movement is blocked (so the cursor
-doesn't fight with your touches). Turn OFF with the hotkey to get it back.
-Works in any screen orientation, even if you rotate the screen while it runs.
-"""
 import ctypes
 import struct
 import sys
