@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#080c19;--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.09);--ink:#eaf0ff;--mute:#8f9cbd;--acc:#7f8dff;--acc2:#5666ff;--good:#4ade80;--bad:#ff6b81}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:13.5px/1.4 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(640px 340px at 28% -120px,rgba(127,141,255,.3),transparent 70%),var(--bg)}
+.app{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;padding:16px;height:100%}
+.col{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
+header{display:flex;align-items:center;gap:10px;padding:0 2px}
+.mark{width:30px;height:23px;border:2.5px solid var(--ink);border-radius:7px;position:relative}
+.mark:after{content:"";position:absolute;right:3px;bottom:3px;width:7px;height:7px;border-radius:50%;background:var(--acc)}
+h1{font:700 19px "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;letter-spacing:-.02em;margin:0;flex:1}
+.pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mute);padding:5px 11px;border:1px solid var(--line);border-radius:99px;background:var(--card)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--mute)}
+.pill.ok i{background:var(--good);animation:pulse 2s infinite}
+.pill.bad i{background:var(--bad)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.6)}70%,100%{box-shadow:0 0 0 7px rgba(74,222,128,0)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;min-height:0}
+.hero{display:flex;align-items:center;gap:18px;padding:18px}
+#sw{flex:none;width:112px;height:60px;border-radius:99px;border:0;padding:0;cursor:pointer;background:#2b3552;position:relative;transition:background .35s,box-shadow .35s;box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
+#sw:after{content:"";position:absolute;left:6px;top:6px;width:48px;height:48px;border-radius:50%;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.35);transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+#sw.on{background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 0 0 5px rgba(127,141,255,.16),0 8px 32px rgba(86,102,255,.55)}
+#sw.on:after{transform:translateX(52px)}
+#sw:disabled{opacity:.4;cursor:default}
+h2{font:700 19px "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;letter-spacing:-.02em;margin:0 0 2px}
+.mute{color:var(--mute)}.sm{font-size:12px}
+h3{font-size:11.5px;font-weight:600;margin:0 0 8px;color:var(--mute);letter-spacing:.06em}
+.prev{flex:1;display:flex;flex-direction:column}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+.scr{position:relative;display:grid;gap:5px;padding:5px;border-radius:12px;background:#0d1328;border:1px solid var(--line);box-shadow:0 14px 40px -16px #000}
+.t{border-radius:7px;background:rgba(255,255,255,.05);transition:background .15s,box-shadow .15s}
+.t.h{background:rgba(127,141,255,.6);box-shadow:0 0 16px rgba(127,141,255,.5)}
+.d{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:2.5px solid #fff;background:rgba(127,141,255,.45);box-shadow:0 0 20px rgba(127,141,255,.9);transition:left .06s linear,top .06s linear;pointer-events:none}
+.hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mute);pointer-events:none}
+.side{display:flex;flex-direction:column;padding:12px;flex:1}
+.tabs{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.05);border-radius:12px;margin-bottom:10px}
+.tab{flex:1;border:0;background:none;color:var(--mute);font:inherit;font-weight:600;padding:7px;border-radius:9px;cursor:pointer;transition:.2s}
+.tab.on{background:rgba(127,141,255,.2);color:var(--ink)}
+.panel{display:none;flex:1;min-height:0;flex-direction:column}.panel.on{display:flex}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 4px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row b{display:block;font-weight:600;font-size:13px}
+.row .sm{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row>div:first-child{min-width:0}
+.adv{display:flex;flex-direction:column;transition:opacity .35s,filter .35s}
+.adv.off{opacity:.34;filter:grayscale(.5);pointer-events:none}
+.tg{flex:none;width:42px;height:24px;border-radius:99px;border:0;background:#2b3552;position:relative;cursor:pointer;transition:background .25s}
+.tg:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.tg.on{background:var(--acc2)}.tg.on:after{transform:translateX(18px)}
+.sld{padding:8px 4px 4px;border-top:1px solid var(--line)}
+.sh{display:flex;justify-content:space-between;align-items:center}
+#mv{font-weight:700;color:#fff;background:linear-gradient(135deg,var(--acc2),var(--acc));padding:2px 10px;border-radius:99px;font-size:12px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:2px 0 0;background:transparent;outline:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--acc2),var(--acc)) 0 0/var(--p,25%) 100% no-repeat,rgba(255,255,255,.1)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-7px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px rgba(127,141,255,.28),0 4px 12px rgba(0,0,0,.55);transition:box-shadow .2s,transform .2s}
+input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.12)}
+input[type=range]:active::-webkit-slider-thumb{box-shadow:0 0 0 8px rgba(127,141,255,.32),0 4px 14px rgba(0,0,0,.55)}
+.ticks{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mute);padding:0 3px}
+.keys{flex:none;display:flex;gap:4px;align-items:center;background:none;border:1px dashed transparent;border-radius:10px;padding:4px;cursor:pointer;color:var(--ink);font:inherit}
+.keys:hover{border-color:var(--line)}
+.keys.cap{border-color:var(--acc);animation:p2 1.2s infinite}
+@keyframes p2{50%{box-shadow:0 0 0 4px rgba(127,141,255,.2)}}
+kbd{font:600 12px "Segoe UI",system-ui,sans-serif;padding:3px 8px;border-radius:7px;background:#1a2342;border:1px solid var(--line);border-bottom-width:3px;min-width:24px;text-align:center}
+kbd.n{color:var(--mute);font-weight:500}
+.keys.fail kbd{border-color:var(--bad);color:var(--bad)}
+.r{background:none;border:0;color:var(--mute);font:inherit;font-size:11.5px;cursor:pointer;text-decoration:underline;padding:0 0 0 4px}
+.btm{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:10px}
+.btn{font:inherit;font-weight:600;font-size:12.5px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:7px 15px;cursor:pointer;transition:.2s}
+.btn:hover{background:rgba(255,107,129,.16);border-color:rgba(255,107,129,.5)}
+.btn.arm{background:rgba(255,107,129,.22);border-color:var(--bad);color:#ffd5db}
+a{color:var(--acc);cursor:pointer;font-size:12px}
+#toast{position:fixed;left:50%;bottom:14px;transform:translate(-50%,30px);opacity:0;background:#1b2447;border:1px solid var(--line);padding:9px 15px;border-radius:12px;transition:.3s;pointer-events:none}
+#toast.s{opacity:1;transform:translate(-50%,0)}
+</style></head>
+<body><div class="app">
+<div class="col">
+ <header><div class="mark"></div><h1>touchmypad</h1><div class="pill" id="pill"><i></i><span id="ps">Starting</span></div></header>
+ <div class="card hero"><button id="sw" aria-label="Turn touch mode on or off"></button>
+  <div><h2 id="ttl">Touch mode is OFF</h2><div class="mute" id="sub"></div></div></div>
+ <div class="card prev"><h3>WHERE YOUR FINGERS LAND</h3>
+  <div class="stage" id="stage"><div class="scr" id="scr"></div><div class="hint" id="hint"></div></div></div>
+</div>
+<div class="col"><div class="card side">
+ <div class="tabs"><button class="tab on" data-p="p1">Shortcuts</button><button class="tab" data-p="p2">Settings</button></div>
+
+ <div class="panel on" id="p1">
+  <div class="row"><div><b>Turn touch mode on or off</b><span class="mute sm">Works from anywhere in Windows</span></div>
+   <div style="display:flex;align-items:center"><button class="keys" id="k-toggle"></button><button class="r" data-r="toggle">Reset</button></div></div>
+  <div class="adv" id="adv-k">
+   <div class="row"><div><b>Show or hide this window</b><span class="mute sm">Advanced. Not set by default</span></div>
+    <div style="display:flex;align-items:center"><button class="keys" id="k-show"></button><button class="r" data-r="show">Clear</button></div></div>
+  </div>
+  <div class="mute sm" style="margin-top:auto;padding:8px 4px 0">Click the keys, then press your new shortcut. Press Esc to cancel.</div>
+ </div>
+
+ <div class="panel" id="p2">
+  <div class="row"><div><b>Advanced settings</b><span class="mute sm">Unlocks the options below. Off resets them</span></div><button class="tg" data-k="advanced"></button></div>
+  <div class="adv" id="adv">
+   <div class="sld"><div class="sh"><div><b>Corner reach</b></div><span id="mv"></span></div>
+    <input type="range" id="m" min="0" max="12" step="0.5"><div class="ticks"><span>0%</span><span>6%</span><span>12%</span></div></div>
+   <div class="row"><div><b>Swap portrait direction</b><span class="mute sm">If touches feel mirrored on a rotated screen</span></div><button class="tg" data-k="swap"></button></div>
+   <div class="row"><div><b>Start with touch mode on</b><span class="mute sm">When the app opens</span></div><button class="tg" data-k="start_on"></button></div>
+   <div class="row"><div><b>Keep running in the tray</b><span class="mute sm">Closing the window hides it</span></div><button class="tg" data-k="tray"></button></div>
+   <div class="row"><div><b>Open when Windows starts</b><span class="mute sm">Starts quietly in the tray</span></div><button class="tg" data-k="autostart"></button></div>
+  </div>
+  <div style="margin-top:auto;padding-top:8px"><button class="btn" id="rst">Reset all settings</button></div>
+ </div>
+
+ <div class="btm"><a id="gh">github.com/skykartik/touchmypad</a><button class="btn" id="quit">Quit</button></div>
+</div></div>
+</div><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);let api,st,cap=null,tt,lay='',rt;
+addEventListener('pywebviewready',()=>{api=pywebview.api;loop()});
+async function loop(){try{st=await api.state();render(st)}catch(e){}setTimeout(loop,45)}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('s');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('s'),2400)}
+function keysHTML(l){return l==='Not set'?'<kbd class="n">Not set</kbd>':l.split(' + ').map(k=>'<kbd>'+k+'</kbd>').join('')}
+function render(s){
+ const on=s.on&&!s.error,p=$('#pill'),adv=s.cfg.advanced;
+ $('#sw').classList.toggle('on',on);$('#sw').disabled=!!s.error;
+ $('#ttl').textContent=s.error?"Couldn't start":on?'Touch mode is ON':'Touch mode is OFF';
+ $('#sub').textContent=s.error||(on?'Your touchpad now taps the screen. The normal cursor is paused.':'Your normal cursor is back. Flip the switch to use touch.');
+ p.className='pill '+(s.error?'bad':s.pad?'ok':'');
+ $('#ps').textContent=s.error?'Not running':s.pad?'Touchpad connected':'Touch your touchpad once';
+ const st_=$('#stage'),W=st_.clientWidth,H=st_.clientHeight,port=s.h>s.w,cols=port?3:4,rows=port?4:3,key=cols+'x'+s.w+'x'+s.h+'x'+W+'x'+H;
+ const sc=$('#scr');
+ if(key!==lay){lay=key;const k=Math.min((W-8)/s.w,(H-8)/s.h);sc.style.width=s.w*k+'px';sc.style.height=s.h*k+'px';
+  sc.style.gridTemplate='repeat('+rows+',1fr)/repeat('+cols+',1fr)';sc.innerHTML='<div class="t"></div>'.repeat(cols*rows)}
+ const tiles=sc.querySelectorAll('.t'),hit=new Set();
+ while(sc.querySelectorAll('.d').length<s.pts.length){const d=document.createElement('div');d.className='d';sc.appendChild(d)}
+ sc.querySelectorAll('.d').forEach((d,i)=>{const q=s.pts[i];d.style.display=q?'block':'none';if(q){d.style.left=q[0]*100+'%';d.style.top=q[1]*100+'%';hit.add(Math.min(rows-1,Math.floor(q[1]*rows))*cols+Math.min(cols-1,Math.floor(q[0]*cols)))}});
+ tiles.forEach((t,i)=>t.classList.toggle('h',hit.has(i)));
+ $('#hint').textContent=s.pts.length?'':on?'Touch your touchpad':'Paused';
+ for(const n of ['toggle','show']){const b=$('#k-'+n);if(cap!==n)b.innerHTML=keysHTML(s.hk[n].label);b.classList.toggle('fail',!s.hk[n].ok)}
+ $('#adv').classList.toggle('off',!adv);$('#adv-k').classList.toggle('off',!adv);
+ const m=$('#m');if(document.activeElement!==m)m.value=s.cfg.margin*100;
+ $('#mv').textContent=(m.value*1)+'%';m.style.setProperty('--p',m.value/12*100+'%');
+ $$('.tg').forEach(b=>b.classList.toggle('on',!!s.cfg[b.dataset.k]));
+}
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===b));$$('.panel').forEach(x=>x.classList.toggle('on',x.id===b.dataset.p))});
+$('#sw').onclick=()=>api.toggle();
+$('#m').oninput=e=>api.set_margin(e.target.value/100,false);$('#m').onchange=e=>api.set_margin(e.target.value/100,true);
+$$('.tg').forEach(b=>b.onclick=()=>api.set_flag(b.dataset.k,!st.cfg[b.dataset.k]));
+$$('.r').forEach(b=>b.onclick=async()=>{await api.reset_hotkey(b.dataset.r);toast(b.dataset.r==='show'?'Shortcut cleared':'Shortcut reset')});
+$('#rst').onclick=async()=>{const b=$('#rst');if(!b.classList.contains('arm')){b.classList.add('arm');b.textContent='Click again to confirm';rt=setTimeout(()=>{b.classList.remove('arm');b.textContent='Reset all settings'},3000);return}
+ clearTimeout(rt);b.classList.remove('arm');b.textContent='Reset all settings';await api.reset_all();toast('All settings reset')};
+$('#gh').onclick=()=>api.open_repo();$('#quit').onclick=()=>api.quit();
+function endCap(){if(cap){$('#k-'+cap).classList.remove('cap');cap=null;api.capture(false)}}
+for(const n of ['toggle','show'])$('#k-'+n).onclick=()=>{if(n==='show'&&!st.cfg.advanced)return;endCap();cap=n;const b=$('#k-'+n);b.classList.add('cap');b.innerHTML='<kbd>Press keys…</kbd>';api.capture(true)};
+const KEYS={Backquote:[0xC0,'`'],Space:[0x20,'Space'],Tab:[9,'Tab'],Minus:[0xBD,'-'],Equal:[0xBB,'='],BracketLeft:[0xDB,'['],BracketRight:[0xDD,']'],Semicolon:[0xBA,';'],Quote:[0xDE,"'"],Comma:[0xBC,','],Period:[0xBE,'.'],Slash:[0xBF,'/'],Backslash:[0xDC,'\\'],ArrowLeft:[0x25,'Left'],ArrowUp:[0x26,'Up'],ArrowRight:[0x27,'Right'],ArrowDown:[0x28,'Down']};
+function vkOf(e){let m;if(m=/^Key([A-Z])$/.exec(e.code))return[m[1].charCodeAt(0),m[1]];if(m=/^Digit(\d)$/.exec(e.code))return[48+ +m[1],m[1]];
+ if(m=/^F(\d{1,2})$/.exec(e.code)){const n=+m[1];if(n>=1&&n<=12)return[0x6F+n,'F'+n]}return KEYS[e.code]||null}
+addEventListener('keydown',async e=>{if(!cap)return;e.preventDefault();
+ if(e.key==='Escape'){endCap();return}
+ const k=vkOf(e);if(!k)return;
+ const mod=(e.altKey?1:0)|(e.ctrlKey?2:0)|(e.shiftKey?4:0)|(e.metaKey?8:0),f=k[0]>=0x70&&k[0]<=0x7B;
+ if(!mod&&!f){toast('Hold Ctrl, Alt or Shift too');return}
+ const parts=[];if(e.ctrlKey)parts.push('Ctrl');if(e.altKey)parts.push('Alt');if(e.shiftKey)parts.push('Shift');if(e.metaKey)parts.push('Win');parts.push(k[1]);
+ const n=cap;endCap();const r=await api.set_hotkey(n,mod,k[0],parts.join(' + '));toast(r.ok?'Shortcut saved':r.msg)});
+</script></body></html>
